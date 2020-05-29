@@ -86,7 +86,7 @@ class X10Tester(threading.Thread):
                 self.brightness[addr] = (math.ceil(brightness /4.0) * 4) - 1
 
     def cycle(self):
-        command = self.__gen.__next__()
+        cmd = self.__gen.__next__()
 
         LOG.debug(cmd)
         if 'status' in cmd:
