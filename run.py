@@ -109,9 +109,9 @@ class X10Tester(threading.Thread):
     def publish(self, addr, status, brightness = None):
         self.status[addr] = status
         self.time[addr] = time.time()
-        self.publisher.publish('x10/%s' % addr.lower(), status, qos=0, retain=False)
+        self.publisher.publish('x10/%s/status' % addr.lower(), status, qos=0, retain=False)
         if brightness:
-            self.publisher.publish('x10/%s/brightness' % addr.lower(), brightness, qos=0, retain=False)
+            self.publisher.publish('x10/%s/status/brightness' % addr.lower(), brightness, qos=0, retain=False)
 
 class Main(object):
     server = '127.0.0.1'
