@@ -101,8 +101,12 @@ class X10Tester(threading.Thread):
                 elif time.time() - self.time.get(addr, 0) > self.resend_timeout:
                     self.publish(addr, status)
         else:
-            heyu.send_command_raw(" ".join(cmd))
-            if 'dim' in x10cmd or 'bright' in x10cmd:
+            brightness_cmd = 'dim' in x10cmd or 'bright' in x10cmd
+            timeout = 10
+            if brightness_cmd:
+                timeout = 20
+            heyu.send_command_raw(" ".join(cmd), timeout=timeout)
+            if brightness_cmd:
                 self.publish(addr, 'on', self.brightness.get(addr))
 
 
