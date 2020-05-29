@@ -89,11 +89,15 @@ def run_command(cmd, timeout=30, lines=False):
 
 
 def send_command(cmd, addr, timeout=10):
-    LOG.debug('%s %s %s' % (settings.heyu_binary, cmd, addr))
+    return send_command_raw('%s %s' % (cmd, addr), timeout)
+
+
+def send_command_raw(cmd, timeout=10):
+    LOG.debug('%s %s' % (settings.heyu_binary, cmd))
     try:
-        return run_command('%s %s %s' % (settings.heyu_binary, cmd, addr), timeout)
+        return run_command('%s %s' % (settings.heyu_binary, cmd), timeout)
     except Exception as e:
-        LOG.exception('can\'t pass cmd "%s %s" to heyu: %s' % (cmd, addr, e))
+        LOG.exception('can\'t pass cmd "%s" to heyu: %s' % (cmd, e))
         return None
 
 

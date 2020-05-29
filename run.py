@@ -41,6 +41,7 @@ class X10Tester(threading.Thread):
     commands = []
     status = {}
     time = {}
+    brightness = {}
 
     def __init__(self, publisher):
         threading.Thread.__init__(self)
@@ -54,7 +55,7 @@ class X10Tester(threading.Thread):
                 while self.commands:
                     yield self.commands.pop()
                 if d is not None:
-                    yield (d, 'status')
+                    yield ['status', d]
 
     def run(self):
         while 1:
@@ -64,18 +65,31 @@ class X10Tester(threading.Thread):
     def add_command(self, cmd):
         i = 0
         for c in self.commands[:]:
-            if c[0] == cmd[0]:
+            if c == cmd:
                 i += 1
                 self.commands.remove(c)
         if i:
-            LOG.warn('removing %s commands for %s', i, cmd[0])
+            LOG.warn('removing %s commands for %s', i, cmd)
         self.commands.append(cmd)
 
+    def set_brightness(self, addr, brightness, is_rf=False):
+        if brightness is not None and brightness > 0:
+            current_brightness = self.brightness.get(addr,0)
+            cur_step = math.ceil(current_brightness / 4.0)
+            new_step = math.ceil(brightness / 4.0)
+            delta = new_step - cur_step
+            if delta != 0:
+                command = "bright" if delta > 0 else "dim"
+                rf = "f" if is_rf else ""
+                step = abs(delta)
+                self.add_command([f"{rf}{command}", f"{attr}", f"{step}"])
+                self.brightness[addr] = (math.ceil(brightness /4.0) * 4) - 1
+
     def cycle(self):
-        addr, cmd = self.__gen.__next__()
+        command = self.__gen.__next__()
 
         LOG.debug(cmd)
-        if cmd == 'status':
+        if 'status' in cmd:
             status = heyu.get_status(addr)
             if status:
                 LOG.debug('status of %s is %s', addr, status)
@@ -84,7 +98,7 @@ class X10Tester(threading.Thread):
                 elif time.time() - self.time.get(addr, 0) > self.resend_timeout:
                     self.publish(addr, status)
         else:
-            heyu.send_command(cmd, addr)
+            heyu.send_command_raw(" ".join(cmd))
 
     def publish(self, addr, status):
         self.status[addr] = status
@@ -100,7 +114,9 @@ class Main(object):
 
     def __init__(self, server=None, port=None, user=None, password=None):
         signal.signal(signal.SIGUSR1, self.debug)
-        self.topics = {'x10/+/command': self.x10_cmd}
+        self.topics = {'x10/+/command': self.x10_cmd,
+                        'x10/+/brightness': self.x10_brightness,
+                        'x10/+/fbrightness': self.x10_brightness}
         if server:
             self.server = server
         if port:
@@ -140,7 +156,20 @@ class Main(object):
             cmd = payload.lower()
             addr = parts[1]
             LOG.info('got cmd %s to %s', cmd, addr)
-            self.x10_tester.add_command((addr, cmd))
+            self.x10_tester.add_command([cmd, addr])
+
+    def x10_brightness(self, topic, payload):
+        parts = topic.split('/')
+        if parts[2] in ('brightness','fbrightness'):
+            try:
+                brightness = int(payload)
+                addr = parts[1]
+                rf = parts[2] == 'fbrightness'
+                LOG.info('got %s %s to %s', parts[2], brightness, addr)
+                return self.x10_tester.set_brightness(addr, value, rf)
+            except Exception as e:
+                LOG.exception('failed setting brightness for %s %s: %s' % (topic, payload, e))
+                return None
 
     def debug(self, sig, stack):
         with open('running_stack', 'w') as f:
