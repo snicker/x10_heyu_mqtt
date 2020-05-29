@@ -5,6 +5,7 @@ import signal
 import threading
 import time
 import traceback
+import math
 
 import paho.mqtt.client as mqtt
 
