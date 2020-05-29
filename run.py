@@ -83,7 +83,7 @@ class X10Tester(threading.Thread):
                 command = "bright" if delta > 0 else "dim"
                 rf = "f" if is_rf else ""
                 step = abs(delta)
-                self.add_command([f"{rf}{command}", f"{attr}", f"{step}"])
+                self.add_command([f"{rf}{command}", f"{addr}", f"{step}"])
                 self.brightness[addr] = (math.ceil(brightness /4.0) * 4) - 1
 
     def cycle(self):
