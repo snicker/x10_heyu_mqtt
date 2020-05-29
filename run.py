@@ -166,7 +166,7 @@ class Main(object):
                 addr = parts[1]
                 rf = parts[2] == 'fbrightness'
                 LOG.info('got %s %s to %s', parts[2], brightness, addr)
-                return self.x10_tester.set_brightness(addr, value, rf)
+                return self.x10_tester.set_brightness(addr, brightness, rf)
             except Exception as e:
                 LOG.exception('failed setting brightness for %s %s: %s' % (topic, payload, e))
                 return None
