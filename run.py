@@ -108,6 +108,11 @@ class X10Tester(threading.Thread):
             heyu.send_command_raw(" ".join(cmd), timeout=timeout)
             if brightness_cmd:
                 self.publish(addr, 'on', self.brightness.get(addr))
+            else:
+                if "on" in x10cmd:
+                    self.publish(addr, 'on')
+                if "off" in x10cmd:
+                    self.publish(addr, 'off')
 
 
     def publish(self, addr, status, brightness = None):
