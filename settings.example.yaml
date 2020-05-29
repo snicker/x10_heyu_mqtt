@@ -1,0 +1,13 @@
+#example settings
+heyu_binary: /usr/local/bin/heyu
+mqtt:
+  server: 192.168.0.7
+  port: 1833
+  #user: username
+  #password: password
+x10:
+  monitored_switches:
+    - b1
+    - b2
+    - b3
+  status_update_interval: 120 # max time between published status update intervals
