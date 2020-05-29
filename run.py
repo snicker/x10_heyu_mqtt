@@ -90,6 +90,8 @@ class X10Tester(threading.Thread):
         cmd = self.__gen.__next__()
 
         LOG.debug(cmd)
+        addr = cmd[1]
+        x10cmd = cmd[0]
         if 'status' in cmd:
             status = heyu.get_status(addr)
             if status:
@@ -100,11 +102,16 @@ class X10Tester(threading.Thread):
                     self.publish(addr, status)
         else:
             heyu.send_command_raw(" ".join(cmd))
+            if 'dim' in x10cmd or 'bright' in x10cmd:
+                self.publish(addr, 'on', self.brightness.get(addr))
 
-    def publish(self, addr, status):
+
+    def publish(self, addr, status, brightness = None):
         self.status[addr] = status
         self.time[addr] = time.time()
         self.publisher.publish('x10/%s' % addr.lower(), status, qos=0, retain=False)
+        if brightness:
+            self.publisher.publish('x10/%s/brightness' % addr.lower(), brightness, qos=0, retain=False)
 
 class Main(object):
     server = '127.0.0.1'
