@@ -1,7 +1,7 @@
 import yaml
 
 with open("settings.yaml","r") as f:
-    settings_yaml = yaml.load(f)
+    settings_yaml = yaml.safe_load(f)
 
 heyu_binary = settings_yaml.get('heyu_binary','/usr/local/bin/heyu')
 
